@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+  <meta charset="UTF-8">
+  
+
+    <link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png" />
+
+    <meta name="apple-mobile-web-app-title" content="CodePen">
+
+    <link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico" />
+
+    <link rel="mask-icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-b4b4269c16397ad2f0f7a01bcdf513a1994f4c94b8af2f191c09eb0d601762b1.svg" color="#111" />
+
+
+
+  
+  <title>CodePen - Vibrant Cells</title>
+    <link rel="canonical" href="https://codepen.io/eorama/pen/yLxVgEO" />
+  
+  
+  
+  
+<style>
+body {
+  background-color: #000;
+}
+
+.container {
+  width: 0%;
+  height: 0%;
+  position: fixed;
+}
+
+.cell {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #8BC34A;
+  opacity: 0.8;
+  box-shadow: 0px 0px 10px 0px rgba(139, 195, 74, 0.8);
+}
+</style>
+
+  <script>
+  window.console = window.console || function(t) {};
+</script>
+
+  
+  
+</head>
+
+<body translate="no">
+  <div class="container"></div>
+    <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-2c7831bb44f98c1391d6a4ffda0e1fd302503391ca806e7fcc7b9b87197aec26.js"></script>
+
+  
+      <script id="rendered-js" >
+// Obtener el contenedor
+const container = document.querySelector('.container');
+
+// Generar burbujas de células
+for (let i = 0; i < 100; i++) {
+  // Crear un elemento de célula
+  const cell = document.createElement('div');
+  cell.classList.add('cell');
+
+  // Establecer una posición aleatoria dentro del contenedor
+  const x = Math.floor(Math.random() * (container.offsetWidth - cell.offsetWidth));
+  const y = Math.floor(Math.random() * (container.offsetHeight - cell.offsetHeight));
+  cell.style.left = x + 'px';
+  cell.style.top = y + 'px';
+
+  // Establecer un tamaño aleatorio
+  const size = Math.floor(Math.random() * 30) + 10;
+  cell.style.width = size + 'px';
+  cell.style.height = size + 'px';
+
+  // Agregar la célula al contenedor
+  container.appendChild(cell);
+}
+
+// Mover las células de manera aleatoria
+setInterval(() => {
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach(cell => {
+    const x = parseInt(cell.style.left);
+    const y = parseInt(cell.style.top);
+    const dx = Math.floor(Math.random() * 7) - 3;
+    const dy = Math.floor(Math.random() * 7) - 3;
+    const newX = x + dx;
+    const newY = y + dy;
+
+    // Evitar que las células salgan del contenedor
+    if (newX >= 0 && newX <= container.offsetWidth - cell.offsetWidth) {
+      cell.style.left = newX + 'px';
+    }
+    if (newY >= 0 && newY <= container.offsetHeight - cell.offsetHeight) {
+      cell.style.top = newY + 'px';
+    }
+  });
+}, 50);
+//# sourceURL=pen.js
+    </script>
+
+  
+</body>
+
+</html>
+
+<p style="text-align: center; padding-top:153px; z-index:10000;"><iframe width="1853" height="1253" src="https://en.wikipedia.org/wiki/John_Deacon" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<p style="text-align: center;padding:170px;z-index:10000;"><iframe width="1793" height="1253" src="https://cb-generator.netlify.app/commentbox/sTSAWwRrfjUqUypgVYdY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
