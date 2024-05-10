@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Animation</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script type="module">
+        import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
+        import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+
+        // Load sky texture
+        const skyTextureLoader = new THREE.TextureLoader();
+        const skyTexture = skyTextureLoader.load('https://cdn.jsdelivr.net/gh/Goliath3/panorama@main/cloud.png');
+        scene.background = skyTexture;
+
+        // Load floor texture
+        const floorTextureLoader = new THREE.TextureLoader();
+        const floorTexture = floorTextureLoader.load('https://cdn.jsdelivr.net/gh/Goliath3/panorama@main/checkerboard.jpg');
+        floorTexture.wrapS = THREE.RepeatWrapping;
+        floorTexture.wrapT = THREE.RepeatWrapping;
+        floorTexture.repeat.set(10, 10); // Repeat the texture 10 times in both directions
+
+        // Create floor mesh with texture
+        const floorGeometry = new THREE.PlaneGeometry(100, 100);
+        const floorMaterial = new THREE.MeshBasicMaterial({ map: floorTexture });
+        const floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
+        floorMesh.rotation.x = -Math.PI / 2; // Rotate the floor to lie flat
+        scene.add(floorMesh);
+
+        const loader = new GLTFLoader();
+        let model;
+        let mixer; // Animation mixer
+        let action; // Animation action
+        loader.load('https://cdn.jsdelivr.net/gh/Goliath3/panorama@main/shaylushay.glb', (gltf) => {
+            model = gltf.scene;
+            // Center the model on the floor
+            model.position.set(0, 0, 0);
+            scene.add(model);
+            // Create animation mixer
+            mixer = new THREE.AnimationMixer(model);
+            // Assuming the first animation clip
+            const clip = gltf.animations[0];
+            // Create animation action
+            action = mixer.clipAction(clip);
+            // Set action to loop
+            action.loop = THREE.LoopRepeat;
+        });
+
+        camera.position.set(0, 5, 15); // Move the camera back along the z-axis and up along the y-axis
+        camera.lookAt(0, 0, 0); // Point the camera towards the center of the scene
+
+        // Add ambient light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        // Add directional light
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(0, 1, 0); // Set light position
+        scene.add(directionalLight);
+
+        let speed = 0.1;
+        let rotationSpeed = 0.05;
+        let direction = new THREE.Vector3();
+        let rotationDirection = 0;
+
+        // Array to keep track of pressed direction keys
+        let pressedKeys = [];
+
+        document.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                case 'w':
+                case 'ArrowUp':
+                    direction.z = speed;
+                    break;
+                case 's':
+                case 'ArrowDown':
+                    direction.z = -speed;
+                    break;
+                case 'a':
+                case 'ArrowLeft':
+                    rotationDirection = 1;
+                    break;
+                case 'd':
+                case 'ArrowRight':
+                    rotationDirection = -1;
+                    break;
+            }
+            // Add the pressed key to the array
+            if (!pressedKeys.includes(event.key)) {
+                pressedKeys.push(event.key);
+            }
+            // Start animation when a movement key is pressed
+            if (action && pressedKeys.length > 0) {
+                action.play();
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            switch (event.key) {
+                case 'w':
+                case 'ArrowUp':
+                case 's':
+                case 'ArrowDown':
+                    direction.z = 0;
+                    break;
+                case 'a':
+                case 'ArrowLeft':
+                case 'd':
+                case 'ArrowRight':
+                    rotationDirection = 0;
+                    break;
+            }
+            // Remove the released key from the array
+            pressedKeys = pressedKeys.filter(key => key !== event.key);
+            // Stop animation when no movement keys are pressed
+            if (action && pressedKeys.length === 0) {
+                action.stop();
+            }
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (model) {
+                // Update model rotation
+                model.rotation.y += rotationDirection * rotationSpeed;
+                // Convert rotation to radians
+                const angle = model.rotation.y;
+                // Update model position based on rotation
+                model.position.x += direction.z * Math.sin(angle);
+                model.position.z += direction.z * Math.cos(angle);
+
+                controls.update();
+            }
+
+            // Update animation mixer
+            if (mixer) {
+                mixer.update(0.01); // Time delta
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+<script type="module">
+    document.addEventListener('DOMContentLoaded', function () {
+      const modelViewer = document.getElementById('modelViewer');
+      const toggleButton = document.getElementById('toggleButton');
+      const arButton = document.getElementById('arButton');
+      let isPlaying = false;
+      // Set your target FPS
+      const targetFPS = 60;
+      const timeScale = targetFPS / 60;
+      let i = 0;
+      const play = () => {
+        modelViewer.timeScale = timeScale;
+        modelViewer.play({repetitions: 1});
+      };
+      
+      modelViewer.addEventListener('finished', function () {
+        isPlaying = !isPlaying;
+      });
+
+      // Placeholder URLs
+      const modelSrc = 'https://cdn.jsdelivr.net/gh/Goliath3/panorama@main/shaylushay.glb';
+      const environmentImage = 'https://raw.githubusercontent.com/google/model-viewer/master/packages/shared-assets/environments/moon_1k.hdr';
+      const poster = 'YOUR_POSTER_URL_HERE';
+      const musicSrc = 'https://firebasestorage.googleapis.com/v0/b/dropithere-14392.appspot.com/o/audio%2Fthe%20will%20to%20live%203.mp3?alt=media&token=912026de-34b6-485a-b76f-9d38fdf0a6e0';
+      const music2 = 'https://firebasestorage.googleapis.com/v0/b/dropithere-14392.appspot.com/o/audio%2Fthe%20dawn%20of%20a%20new%20age%2023.mp3?alt=media&token=66dacfaf-430a-49cf-b94a-62c15bee37c4';
+
+      // Set placeholder URLs
+      modelViewer.src = modelSrc;
+      modelViewer.environmentImage = environmentImage;
+      modelViewer.poster = poster;
+
+      const audio = new Audio(musicSrc);
+      const audio2 = new Audio(music2);
+      
+      modelViewer.addEventListener('dblclick', function () {
+        audio2.play();
+        window.open('http://ning.spruz.com/forums/?page=post&fid=FE424197-8BE5-4CD8-B818-6DB82DC67667&lastp=1&id=4DE2091D-9B29-44FB-88CB-874D98908326', '_blank');
+      });
+      
+      modelViewer.addEventListener('finished', function () {        audio.pause();
+      });
+
+      toggleButton.addEventListener('click', function () {
+        if (isPlaying) {
+          modelViewer.pause();
+          audio.pause();
+          modelViewer.currentTime = 0;
+        } else {
+          play();
+          audio.play();
+        }
+
+        isPlaying = !isPlaying;
+      });
+    });
+  </script>
+</body>
+</html>
